@@ -159,4 +159,4 @@ npm run test:browser
 
 MIT — see [LICENSE](LICENSE).
 
-Built by [Parvez](https://github.com/Parvez2017).
+Built with ❤️ by [Parvej](https://parvej.dev/).
