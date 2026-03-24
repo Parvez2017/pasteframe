@@ -1,70 +1,162 @@
+<div align="center">
+
 # PasteFrame
 
-**PasteFrame** is a Chrome extension (Manifest V3) that copies screenshots to your **clipboard** as PNG—paste into chat apps, docs, or image editors with **⌘V / Ctrl+V**. Nothing is saved to disk unless you choose to elsewhere.
+**Screenshot it. Copy it. Paste it. Done.**
 
-Licensed under the [MIT License](LICENSE).
+A Chrome extension that puts screenshots on your clipboard as PNG — no files, no clutter, just **⌘V / Ctrl+V** wherever you need it.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/Parvez2017/pasteframe/pulls)
+
+<br />
+
+<img src="assets/workflow.png" alt="Capture → Clipboard → Paste anywhere" width="680" />
+
+<br />
+
+</div>
+
+---
+
+## The Problem
+
+Most screenshot extensions force you to **download an image** or **save a PDF** just to share what's on your screen. Your Downloads folder fills up with `Screenshot 2026-03-25 at...png` files you'll never organize.
+
+**PasteFrame** skips the file entirely — the screenshot goes straight to your clipboard. Paste it into ChatGPT, Claude, Slack, Notion, Google Docs, or anywhere that accepts images.
+
+---
+
+## Screenshots
+
+<table>
+<tr>
+<td width="50%" align="center">
+
+**Popup — one-click capture**
+
+<img src="assets/popup-preview.png" alt="PasteFrame popup showing Copy visible, Copy full page, and Copy selection buttons" width="480" />
+
+</td>
+<td width="50%" align="center">
+
+**Region picker — crop and copy**
+
+<img src="assets/region-picker-preview.png" alt="Region selection with crop frame, dimension label, and confirm toolbar" width="480" />
+
+</td>
+</tr>
+</table>
+
+---
 
 ## Features
 
-- **Copy visible** — current viewport
-- **Copy full page** — stitched vertical capture (scrolls the tab)
-- **Copy selection** — drag a region, then confirm with the bottom bar (**Copy to clipboard**, **Adjust**, **Cancel**). **Esc** cancels; **Enter** copies when the bar is visible
+| Mode | What it does |
+|------|-------------|
+| **Copy visible** | Captures the current viewport and copies it |
+| **Copy full page** | Scrolls the entire page, stitches the slices into one tall image, copies it |
+| **Copy selection** | Shows a full-screen overlay — drag to select a region, then confirm with the bottom bar |
 
-## Install from source
+**Shortcuts inside region picker:**
+- **Esc** — cancel
+- **Enter** — copy (when toolbar is visible)
+- **Adjust** button — redraw the selection
 
-1. Clone this repository:
+---
 
-   ```bash
-   git clone https://github.com/Parvez2017/pasteframe.git
-   cd pasteframe
-   ```
+## Install
 
-2. Open Chrome and go to `chrome://extensions`.
-
-3. Enable **Developer mode**.
-
-4. Click **Load unpacked** and choose the `pasteframe` folder (the one that contains `manifest.json`).
-
-5. Pin **PasteFrame** from the extensions menu if you like.
-
-Optional Playwright smoke test (dev only; requires [Google Chrome](https://www.google.com/chrome/) and `npm install`):
+### From source (recommended for now)
 
 ```bash
+git clone https://github.com/Parvez2017/pasteframe.git
+cd pasteframe
+```
+
+1. Open `chrome://extensions`
+2. Turn on **Developer mode** (top-right toggle)
+3. Click **Load unpacked**
+4. Select the `pasteframe` folder (the one with `manifest.json`)
+5. Pin PasteFrame from the extensions menu
+
+### Chrome Web Store
+
+Coming soon.
+
+---
+
+## How It Works
+
+```
+┌─────────────┐      ┌──────────────┐      ┌──────────────────┐
+│  You click   │ ───▸ │  Chrome API   │ ───▸ │   PNG blob on    │
+│  a button    │      │  captures tab │      │   your clipboard │
+└─────────────┘      └──────────────┘      └──────────────────┘
+                                                     │
+                                              ⌘V / Ctrl+V
+                                                     ▼
+                                           ChatGPT, Slack, Docs,
+                                           Figma, email… anywhere
+```
+
+**Visible / Full page** — the popup has a live user gesture, so `navigator.clipboard.write()` works directly.
+
+**Region selection** — the popup closes when you interact with the page, so:
+1. The service worker captures and crops with `OffscreenCanvas`
+2. It focuses the tab via `chrome.windows.update` + `chrome.tabs.update`
+3. A tiny injected script calls `clipboard.write()` while the page is focused
+4. If that fails, an offscreen document handles it as a fallback
+
+---
+
+## Permissions
+
+| Permission | Why |
+|---|---|
+| `activeTab` | Capture only the tab you're viewing — nothing in the background |
+| `scripting` | Inject the region picker overlay and capture helpers |
+| `clipboardWrite` | Put the PNG on the system clipboard |
+| `offscreen` | Fallback clipboard write path when the page can't do it |
+| `windows` | Focus the correct browser window so clipboard writes succeed |
+
+**PasteFrame never sends your screenshots anywhere.** Everything stays in the browser.
+
+---
+
+## Project Structure
+
+```
+pasteframe/
+├── manifest.json              # MV3 manifest
+├── popup.html / popup.js      # Extension popup UI
+├── popup.css                  # Popup styles
+├── background.js              # Service worker — capture, crop, clipboard
+├── offscreen.html / .js       # Offscreen document (clipboard fallback)
+├── content/
+│   └── region-picker.js       # Injected crop overlay
+├── util.js                    # Shared blob/image helpers
+├── assets/                    # README images
+└── LICENSE                    # MIT
+```
+
+---
+
+## Contributing
+
+Issues and PRs are welcome. For anything beyond a small fix, consider opening an issue first so we can discuss direction.
+
+```bash
+# Dev smoke test (requires Chrome installed)
 npm install
 npm run test:browser
 ```
 
-## Permissions
-
-| Permission        | Why |
-|-------------------|-----|
-| `activeTab`       | Capture only the tab you’re using when you click the extension |
-| `scripting`       | Inject the region-picker UI and run capture helpers in the page |
-| `clipboardWrite`  | Put the PNG on the system clipboard |
-| `offscreen`       | Fallback clipboard path for region capture when needed |
-| `windows`         | Focus the correct window so clipboard writes succeed reliably |
-
-PasteFrame does not send your screenshots to any server; processing stays in the browser.
-
-## Project layout
-
-| Path | Role |
-|------|------|
-| `manifest.json` | MV3 manifest |
-| `popup.html` / `popup.js` | Toolbar popup: visible & full-page capture |
-| `background.js` | Service worker: region pipeline, clipboard orchestration |
-| `offscreen.html` / `offscreen.js` | Offscreen document for clipboard fallback |
-| `content/region-picker.js` | In-page crop UI |
-| `util.js` | Shared helpers for the service worker |
-
-## Chrome Web Store
-
-A store listing can be added later. This repo stays the **source of truth**; you can always load the latest via **Load unpacked** or pack a ZIP yourself for submission.
-
-## Contributing
-
-Issues and pull requests are welcome. For larger changes, opening an issue first helps align on direction.
+---
 
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+Built by [Parvez](https://github.com/Parvez2017).
