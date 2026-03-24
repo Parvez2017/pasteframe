@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "PasteFrame",
+  "version": "1.0.0",
+  "description": "Capture the page as PNG and copy it to the clipboard—paste into ChatGPT, Slack, Docs, or anywhere. No files saved.",
+  "permissions": ["activeTab", "scripting", "clipboardWrite", "offscreen", "windows"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "PasteFrame — copy screenshot to clipboard"
+  }
+}

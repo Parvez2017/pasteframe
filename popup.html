@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PasteFrame</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="panel">
+    <h1 class="title">PasteFrame</h1>
+    <p class="hint">PNG on the clipboard—paste anywhere (⌘V / Ctrl+V).</p>
+    <div class="actions">
+      <button type="button" id="btn-visible" class="btn primary">Copy visible</button>
+      <button type="button" id="btn-full" class="btn">Copy full page</button>
+      <button type="button" id="btn-region" class="btn">Copy selection…</button>
+    </div>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </main>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
